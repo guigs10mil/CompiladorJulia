@@ -24,26 +24,29 @@ class Parser:
                     else:
                         raise ValueError("soma")
 
-                if (Parser.tokens.actual.type == "MINUS"):
+                elif (Parser.tokens.actual.type == "MINUS"):
                     Parser.tokens.selectNext()
                     if (Parser.tokens.actual.type == "INT"):
                         res -= int(Parser.tokens.actual.value)
                     else:
                         raise ValueError("subtracao")
 
-                if (Parser.tokens.actual.type == "MULTI"):
+                elif (Parser.tokens.actual.type == "MULTI"):
                     Parser.tokens.selectNext()
                     if (Parser.tokens.actual.type == "INT"):
                         res *= int(Parser.tokens.actual.value)
                     else:
                         raise ValueError("multiplicacao")
 
-                if (Parser.tokens.actual.type == "DIV"):
+                elif (Parser.tokens.actual.type == "DIV"):
                     Parser.tokens.selectNext()
                     if (Parser.tokens.actual.type == "INT"):
                         res /= int(Parser.tokens.actual.value)
                     else:
                         raise ValueError("divisao")
+                
+                else:
+                    raise ValueError("caracter invalido depois no INT")
 
                 Parser.tokens.selectNext()
 
