@@ -3,4 +3,4 @@ import parser
 
 a = parser.Parser.run(sys.argv[1])
 
-print(a)
+print(int(a))
