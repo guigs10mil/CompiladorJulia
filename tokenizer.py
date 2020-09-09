@@ -5,8 +5,8 @@ class Tokenizer:
         self.origin = origin
         self.position = -1
         self.actual = None
-        self.operators = "+-*/"
-        self.operatorTypes = ["PLUS", "MINUS", "MULTI", "DIV"]
+        self.operators = "+-*/()"
+        self.operatorTypes = ["PLUS", "MINUS", "MULTI", "DIV", "POPEN", "PCLOSE"]
     
     def selectNext(self):
         # lê o próximo token e atualiza o atributo atual
