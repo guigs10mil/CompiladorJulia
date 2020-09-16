@@ -1,5 +1,6 @@
 import tokenizer
 import prepro
+from node import *
 
 class Parser:
     tokens = None
@@ -16,11 +17,11 @@ class Parser:
         while Parser.tokens.actual.type == "PLUS" or Parser.tokens.actual.type == "MINUS":
             if (Parser.tokens.actual.type == "PLUS"):
                 Parser.tokens.selectNext()
-                res += Parser.parseTerm()
+                res = BinOp("+", [res, Parser.parseTerm()])
 
             elif (Parser.tokens.actual.type == "MINUS"):
                 Parser.tokens.selectNext()
-                res -= Parser.parseTerm()
+                res = BinOp("-", [res, Parser.parseTerm()])
 
         return res
 
@@ -33,11 +34,12 @@ class Parser:
         while Parser.tokens.actual.type == "MULTI" or Parser.tokens.actual.type == "DIV":
             if (Parser.tokens.actual.type == "MULTI"):
                 Parser.tokens.selectNext()
-                res *= Parser.parseFactor()
+                res = BinOp("*", [res, Parser.parseFactor()])
 
             elif (Parser.tokens.actual.type == "DIV"):
                 Parser.tokens.selectNext()
                 res /= Parser.parseFactor()
+                res = BinOp("/", [res, Parser.parseFactor()])
 
         return res
 
@@ -45,21 +47,19 @@ class Parser:
     def parseFactor():
         # consome os tokens do Tokenizer e analisa se a sintaxe está aderente à gramática proposta. retorna o resultado da expressão analisada
 
-        # res = int(Parser.tokens.actual.value)
-        res = 0
-        # Parser.tokens.selectNext()
+        res = None
 
         if (Parser.tokens.actual.type == "INT"):
-            res = int(Parser.tokens.actual.value)
+            res = IntVal(int(Parser.tokens.actual.value)) # int(Parser.tokens.actual.value)
             Parser.tokens.selectNext()
 
         elif (Parser.tokens.actual.type == "PLUS"):
             Parser.tokens.selectNext()
-            res = Parser.parseFactor()
+            res = UnOp("+", [Parser.parseFactor()])
 
         elif (Parser.tokens.actual.type == "MINUS"):
             Parser.tokens.selectNext()
-            res = -Parser.parseFactor()
+            res = UnOp("-", [Parser.parseFactor()])
 
         elif (Parser.tokens.actual.type == "POPEN"):
             Parser.tokens.selectNext()
@@ -84,4 +84,4 @@ class Parser:
         if Parser.tokens.actual.type != "EOF":
             raise ValueError("Program ended before EOF. Current type is " + Parser.tokens.actual.type + ".")
 
-        return res
+        return res.evaluate()
