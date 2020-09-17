@@ -1,1 +1,1 @@
-(2 + 2)*2       #= Conta basica =#
+8 * 9 / 2       #= Conta basica =#
