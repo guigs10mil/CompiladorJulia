@@ -38,7 +38,6 @@ class Parser:
 
             elif (Parser.tokens.actual.type == "DIV"):
                 Parser.tokens.selectNext()
-                res /= Parser.parseFactor()
                 res = BinOp("/", [res, Parser.parseFactor()])
 
         return res
