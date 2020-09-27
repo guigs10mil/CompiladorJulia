@@ -1,3 +1,7 @@
+from symboltable import SymbolTable
+
+table = SymbolTable()
+
 class Node:
     def __init__(self, value, children = None):
         self.value = value
@@ -24,6 +28,23 @@ class UnOp(Node):
         if self.value == "-":
             return -self.children[0].evaluate()
 
+class Identifier(Node):
+    def evaluate(self) -> int:
+        return table.getter(self.value)
+
+class Assignment(Node):
+    def evaluate(self):
+        table.setter(self.children[0].value, self.children[1].evaluate())
+        
+class Statment(Node):
+    def evaluate(self):
+        for i in self.children:
+            i.evaluate()
+
+class Print(Node):
+    def evaluate(self):
+        print(int(self.children[0].evaluate()))
+
 class IntVal(Node):
     def evaluate(self) -> int:
         return self.value
@@ -31,15 +52,3 @@ class IntVal(Node):
 class NoOp(Node):
     def evaluate(self) -> int:
         return 0
-
-
-
-
-
-
-
-
-# BinOp - Binary Operation. Contem 2 filhos 
-# UnOp - Unary Operation. Contem um filho 
-# IntVal - Integer value. Não contem filhos 
-# NoOp - No Operation (Dummy). Não contem filhos
