@@ -1,4 +1,4 @@
 numero = 8 * 9 / 2       #= Conta basica =#
-outro = (9 + 2) * 3
+outro_numero = (9 + 2) * 3
 
-println(numero + outro)
+println(numero + outro_numero)

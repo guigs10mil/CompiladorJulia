@@ -50,7 +50,7 @@ class Tokenizer:
             return
 
         elif (tk.isalpha()):
-            while (len(self.origin) > self.position + 1 and (self.origin[self.position + 1].isnumeric() or self.origin[self.position + 1].isalpha())):
+            while (len(self.origin) > self.position + 1 and (self.origin[self.position + 1].isnumeric() or self.origin[self.position + 1].isalpha() or self.origin[self.position + 1] == "_")):
                 tk += self.origin[self.position + 1]
                 self.position += 1
 
