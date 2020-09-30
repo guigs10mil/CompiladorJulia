@@ -13,7 +13,7 @@ TERM = FACTOR, {("*" | "/"), FACTOR} ;
 
 FACTOR = NUMBER | (("+" | "-"), FACTOR) | ("(", EXPRESSION, ")") | IDENTIFIER ;
 
-IDENTIFIER = CHARACTER, { CHARACTER | DIGIT } ;
+IDENTIFIER = CHARACTER, { CHARACTER | DIGIT | "_" } ;
 
 CHARACTER = "a" | ... | "z" | "A" | ... | "Z" ;
 
