@@ -1,6 +1,6 @@
 # CompiladorJulia
 
-![diagramaSintatico](https://github.com/guigs10mil/CompiladorJulia/blob/master/diagramaSintatico.png?raw=true)
+![DiagramaSintatico](https://github.com/guigs10mil/CompiladorJulia/blob/master/DiagramaSintatico.png?raw=true)
 
 ### EBNF
 EXPRESSION = TERM, {("+" | "-"), TERM} ;
