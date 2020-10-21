@@ -5,18 +5,32 @@
 ### EBNF
 BLOCK = { COMMAND } ;
 
-COMMAND = (IDENTIFIER, "=", EXPRESSION, "\n") | ("println", "(", EXPRESSION, ")", "\n") | "\n" ;
+COMMAND = ( ASSIGNMENT | PRINT | WHILE | IF ), "\n" | "\n" ;
 
-EXPRESSION = TERM, {("+" | "-"), TERM} ;
+ASSIGNMENT = IDENTIFIER, "=", ( REL_EXPRESSION | "readline", "(", ")" ) ;
 
-TERM = FACTOR, {("*" | "/"), FACTOR} ;
+PRINT = "println", "(", REL_EXPRESSION, ")" ;
 
-FACTOR = NUMBER | (("+" | "-"), FACTOR) | ("(", EXPRESSION, ")") | IDENTIFIER ;
+WHILE = "while", REL_EXPRESSION, "\n", BLOCK, "end" ;
+
+IF = "if", REL_EXPRESSION, "\n", BLOCK, { ELSEIF }, [ ELSE ], "end" ;
+
+ELSEIF = "elseif", REL_EXPRESSION, "\n", BLOCK ;
+
+ELSE = "else", "\n", BLOCK ;
+
+REL_EXPRESSION = EXPRESSION, { ( "==" | ">" | "<" ), EXPRESION } ;
+
+EXPRESSION = TERM, { ( "+" | "-" | "||" ), TERM } ;
+
+TERM = FACTOR, { ( "*" | "/" | "&&" ), FACTOR } ;
+
+FACTOR = NUMBER | ( ( "+" | "-" | "!" ), FACTOR ) | ( "(", REL_EXPRESSION, ")" ) | IDENTIFIER ;
 
 IDENTIFIER = CHARACTER, { CHARACTER | DIGIT | "_" } ;
 
 CHARACTER = "a" | ... | "z" | "A" | ... | "Z" ;
 
-NUMBER = DIGIT, {DIGIT} ;
+NUMBER = DIGIT, { DIGIT } ;
 
 DIGIT = "0" | "1" | ... | "9" ;
