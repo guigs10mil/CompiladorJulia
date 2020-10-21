@@ -12,7 +12,10 @@ class Parser:
         if (Parser.tokens.position == -1):
             Parser.tokens.selectNext()
 
-        while Parser.tokens.actual.type != "EOF":
+        while (Parser.tokens.actual.type != "EOF"
+                and Parser.tokens.actual.type != "ELSEIF"
+                and Parser.tokens.actual.type != "ELSE"
+                and Parser.tokens.actual.type != "END"):
             res.children.append(Parser.parseCommand())
 
         return res
@@ -27,7 +30,21 @@ class Parser:
             Parser.tokens.selectNext()
             if (Parser.tokens.actual.type == "EQUAL"):
                 Parser.tokens.selectNext()
-                res = Assignment("=", [identifier, Parser.parseExpression()])
+                if (Parser.tokens.actual.type == "READLINE"):
+                    Parser.tokens.selectNext()
+                    if (Parser.tokens.actual.type == "POPEN"):
+                        Parser.tokens.selectNext()
+                        if (Parser.tokens.actual.type == "PCLOSE"):
+                            Parser.tokens.selectNext()
+                        else:
+                            raise ValueError("Closing parenteses not found. Found " + Parser.tokens.actual.type + " instead.")
+                    else:
+                        raise ValueError("Opening parenteses not found. Found " + Parser.tokens.actual.type + " instead.")
+
+                    res = Assignment("=", [identifier, Readline(None)])
+                
+                else:
+                    res = Assignment("=", [identifier, Parser.parseRelExpression()])
             
             else:
                 raise ValueError("Invalid token after identifier: " + Parser.tokens.actual.type)
@@ -43,12 +60,11 @@ class Parser:
             Parser.tokens.selectNext()
             if (Parser.tokens.actual.type == "POPEN"):
                 Parser.tokens.selectNext()
-                # res = Parser.parseExpression()
-                res = Print("println", [Parser.parseExpression()])
+                res = Print("println", [Parser.parseRelExpression()])
                 if (Parser.tokens.actual.type == "PCLOSE"):
                     Parser.tokens.selectNext()
                 else:
-                    raise ValueError("Closing parenteses not found")
+                    raise ValueError("Closing parenteses not found. Found " + Parser.tokens.actual.type + " instead.")
             
             else:
                 raise ValueError("Invalid token in PRINT: " + Parser.tokens.actual.type)
@@ -58,7 +74,77 @@ class Parser:
                 return res
             else:
                 raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
+
+        elif (Parser.tokens.actual.type == "WHILE"):
+            Parser.tokens.selectNext()
+            res = While("while", [Parser.parseRelExpression()])
+
+            if (Parser.tokens.actual.type == "LBREAK"):
+                Parser.tokens.selectNext()
+            else:
+                raise ValueError("No line break found after while. Found " + Parser.tokens.actual.type + " instead.")
+
+            res.children.append(Parser.parseBlock())
+
+            if (Parser.tokens.actual.type == "END"):
+                Parser.tokens.selectNext()
+            else:
+                raise ValueError("No end of while found. Found " + Parser.tokens.actual.type + " instead.")
+                
+            if (Parser.tokens.actual.type == "LBREAK"):
+                Parser.tokens.selectNext()
+                return res
+            else:
+                raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
         
+        elif (Parser.tokens.actual.type == "IF"):
+            Parser.tokens.selectNext()
+            res = If("if", [Parser.parseRelExpression()])
+
+            previousIf = res
+
+            if (Parser.tokens.actual.type == "LBREAK"):
+                Parser.tokens.selectNext()
+            else:
+                raise ValueError("No line break found after if. Found " + Parser.tokens.actual.type + " instead.")
+
+            res.children.append(Parser.parseBlock())
+
+            while (Parser.tokens.actual.type == "ELSEIF"):
+                Parser.tokens.selectNext()
+                tmpIf = If("if", [Parser.parseRelExpression()])
+                
+                previousIf.children.append(tmpIf)
+                previousIf = tmpIf
+
+                if (Parser.tokens.actual.type == "LBREAK"):
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("No line break found after elseif. Found " + Parser.tokens.actual.type + " instead.")
+
+                previousIf.children.append(Parser.parseBlock())
+
+            if (Parser.tokens.actual.type == "ELSE"):
+                Parser.tokens.selectNext()
+                if (Parser.tokens.actual.type == "LBREAK"):
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("No line break found after else. Found " + Parser.tokens.actual.type + " instead.")
+
+                previousIf.children.append(Parser.parseBlock())
+
+
+            if (Parser.tokens.actual.type == "END"):
+                Parser.tokens.selectNext()
+            else:
+                raise ValueError("No end of if found. Found " + Parser.tokens.actual.type + " instead.")
+                
+            if (Parser.tokens.actual.type == "LBREAK"):
+                Parser.tokens.selectNext()
+                return res
+            else:
+                raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
+
         elif (Parser.tokens.actual.type == "LBREAK"):
             Parser.tokens.selectNext()
             res = NoOp("NoOp")
@@ -68,7 +154,26 @@ class Parser:
             raise ValueError("Invalid token in parse command: " + Parser.tokens.actual.type)
 
         
+    @staticmethod
+    def parseRelExpression():
+        # consome os tokens do Tokenizer e analisa se a sintaxe está aderente à gramática proposta. retorna o resultado da expressão analisada
 
+        res = Parser.parseExpression()
+
+        while Parser.tokens.actual.type == "EQUALS" or Parser.tokens.actual.type == "GREATER" or Parser.tokens.actual.type == "LESSTHAN":
+            if (Parser.tokens.actual.type == "EQUALS"):
+                Parser.tokens.selectNext()
+                res = BinOp("==", [res, Parser.parseExpression()])
+
+            elif (Parser.tokens.actual.type == "GREATER"):
+                Parser.tokens.selectNext()
+                res = BinOp(">", [res, Parser.parseExpression()])
+
+            elif (Parser.tokens.actual.type == "LESSTHAN"):
+                Parser.tokens.selectNext()
+                res = BinOp("<", [res, Parser.parseExpression()])
+
+        return res
     
     @staticmethod
     def parseExpression():
@@ -76,7 +181,7 @@ class Parser:
 
         res = Parser.parseTerm()
 
-        while Parser.tokens.actual.type == "PLUS" or Parser.tokens.actual.type == "MINUS":
+        while Parser.tokens.actual.type == "PLUS" or Parser.tokens.actual.type == "MINUS" or Parser.tokens.actual.type == "OR":
             if (Parser.tokens.actual.type == "PLUS"):
                 Parser.tokens.selectNext()
                 res = BinOp("+", [res, Parser.parseTerm()])
@@ -84,6 +189,10 @@ class Parser:
             elif (Parser.tokens.actual.type == "MINUS"):
                 Parser.tokens.selectNext()
                 res = BinOp("-", [res, Parser.parseTerm()])
+
+            elif (Parser.tokens.actual.type == "OR"):
+                Parser.tokens.selectNext()
+                res = BinOp("||", [res, Parser.parseTerm()])
 
         return res
 
@@ -93,7 +202,7 @@ class Parser:
 
         res = Parser.parseFactor()
 
-        while Parser.tokens.actual.type == "MULTI" or Parser.tokens.actual.type == "DIV":
+        while Parser.tokens.actual.type == "MULTI" or Parser.tokens.actual.type == "DIV" or Parser.tokens.actual.type == "AND":
             if (Parser.tokens.actual.type == "MULTI"):
                 Parser.tokens.selectNext()
                 res = BinOp("*", [res, Parser.parseFactor()])
@@ -101,6 +210,10 @@ class Parser:
             elif (Parser.tokens.actual.type == "DIV"):
                 Parser.tokens.selectNext()
                 res = BinOp("/", [res, Parser.parseFactor()])
+
+            elif (Parser.tokens.actual.type == "AND"):
+                Parser.tokens.selectNext()
+                res = BinOp("&&", [res, Parser.parseFactor()])
 
         return res
 
@@ -113,6 +226,10 @@ class Parser:
         if (Parser.tokens.actual.type == "INT"):
             res = IntVal(int(Parser.tokens.actual.value))
             Parser.tokens.selectNext()
+
+        elif (Parser.tokens.actual.type == "NOT"):
+            Parser.tokens.selectNext()
+            res = UnOp("!", [Parser.parseFactor()])
 
         elif (Parser.tokens.actual.type == "PLUS"):
             Parser.tokens.selectNext()
@@ -128,7 +245,7 @@ class Parser:
 
         elif (Parser.tokens.actual.type == "POPEN"):
             Parser.tokens.selectNext()
-            res = Parser.parseExpression()
+            res = Parser.parseRelExpression()
             if (Parser.tokens.actual.type == "PCLOSE"):
                 Parser.tokens.selectNext()
             else:
@@ -145,8 +262,5 @@ class Parser:
 
         Parser.tokens = Tokenizer(prepro.PrePro.filter(code))
         res = Parser.parseBlock()
-
-        # if Parser.tokens.actual.type != "EOF":
-        #     raise ValueError("Program ended before EOF. Current type is " + Parser.tokens.actual.type + ".")
 
         return res.evaluate()
