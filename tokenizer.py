@@ -5,10 +5,10 @@ class Tokenizer:
         self.origin = origin
         self.position = -1
         self.actual = None
-        self.operators = "+-*/()"
-        self.operatorTypes = ["PLUS", "MINUS", "MULTI", "DIV", "POPEN", "PCLOSE"]
-        self.names = ["println"]
-        self.namesTypes = ["PRINT"]
+        self.operators = ["+", "-", "*", "/", "(", ")", ">", "<", "!"]
+        self.operatorTypes = ["PLUS", "MINUS", "MULTI", "DIV", "POPEN", "PCLOSE", "GREATER", "LESSTHAN", "NOT"]
+        self.names = ["println", "while", "if", "elseif", "else", "readline", "end"]
+        self.namesTypes = ["PRINT", "WHILE", "IF", "ELSEIF", "ELSE", "READLINE", "END"]
     
     def selectNext(self):
         # lê o próximo token e atualiza o atributo atual
@@ -27,14 +27,34 @@ class Tokenizer:
             self.position += 1
             tk = self.origin[self.position]
 
-        if (self.operators.find(tk) != -1):
+        if (tk in self.operators):
             self.actual = Token(
-                self.operatorTypes[self.operators.find(tk)],
+                self.operatorTypes[self.operators.index(tk)],
                 tk)
             return
 
         elif (tk == "="):
-            self.actual = Token("EQUAL", tk)
+            if (self.origin[self.position + 1] == "="):
+                self.actual = Token("EQUALS", "==")
+                self.position += 1
+            else:
+                self.actual = Token("EQUAL", tk)
+            return
+
+        elif (tk == "|"):
+            if (self.origin[self.position + 1] == "|"):
+                self.actual = Token("OR", "||")
+                self.position += 1
+            else:
+                raise ValueError("Invalid OR token")
+            return
+
+        elif (tk == "&"):
+            if (self.origin[self.position + 1] == "&"):
+                self.actual = Token("AND", "&&")
+                self.position += 1
+            else:
+                raise ValueError("Invalid AND token")
             return
 
         elif (tk == "\n"):
