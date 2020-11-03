@@ -5,7 +5,7 @@
 ### EBNF
 BLOCK = { COMMAND } ;
 
-COMMAND = ( ASSIGNMENT | PRINT | WHILE | IF ), "\n" | "\n" ;
+COMMAND = ( ASSIGNMENT | PRINT | WHILE | IF | LOCAL ), "\n" | "\n" ;
 
 ASSIGNMENT = IDENTIFIER, "=", ( REL_EXPRESSION | "readline", "(", ")" ) ;
 
@@ -19,15 +19,23 @@ ELSEIF = "elseif", REL_EXPRESSION, "\n", BLOCK ;
 
 ELSE = "else", "\n", BLOCK ;
 
+LOCAL = "local", IDENTIFIER, "::", TYPE ;
+
 REL_EXPRESSION = EXPRESSION, { ( "==" | ">" | "<" ), EXPRESION } ;
 
 EXPRESSION = TERM, { ( "+" | "-" | "||" ), TERM } ;
 
 TERM = FACTOR, { ( "*" | "/" | "&&" ), FACTOR } ;
 
-FACTOR = NUMBER | ( ( "+" | "-" | "!" ), FACTOR ) | ( "(", REL_EXPRESSION, ")" ) | IDENTIFIER ;
+FACTOR = NUMBER | ( ( "+" | "-" | "!" ), FACTOR ) | ( "(", REL_EXPRESSION, ")" ) | IDENTIFIER | BOOL | STRING ;
 
 IDENTIFIER = CHARACTER, { CHARACTER | DIGIT | "_" } ;
+
+BOOL = "true" | "false" ;
+
+STRING = '"', .*?, '"' 
+
+TYPE = "Int" | "Bool" | "String" ;
 
 CHARACTER = "a" | ... | "z" | "A" | ... | "Z" ;
 
