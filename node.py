@@ -11,37 +11,60 @@ class Node:
         return 0
 
 class BinOp(Node):
-    def evaluate(self) -> int:
+    def evaluate(self):
+        child0 = self.children[0].evaluate()
+        child1 = self.children[1].evaluate()
+
+        if (child0[0] == "String" or child1[0] == "String"):
+            if self.value == "*":
+                if child0[0] == "Bool":
+                    return ("String", str(child0[1]).lower() + str(child1[1]))
+                if child1[0] == "Bool":
+                    return ("String", str(child0[1]) + str(child1[1]).lower())
+                
+                return ("String", str(child0[1]) + str(child1[1]))
+
+            elif self.value == "==" and child0[0] == "String" and child1[0] == "String":
+                return ("Bool", bool(child0[1] == child1[1]))
+
+            else:
+                raise ValueError("BinOp invalid string operation: " + str(child0[1]) + " " + self.value + " " + str(child1[1]))
+
         if self.value == "+":
-            return int(self.children[0].evaluate() + self.children[1].evaluate())
+            return ("Int", int(child0[1] + child1[1]))
         if self.value == "-":
-            return int(self.children[0].evaluate() - self.children[1].evaluate())
+            return ("Int", int(child0[1] - child1[1]))
         if self.value == "*":
-            return int(self.children[0].evaluate() * self.children[1].evaluate())
+            return ("Int", int(child0[1] * child1[1]))
         if self.value == "/":
-            return int(self.children[0].evaluate() / self.children[1].evaluate())
+            return ("Int", int(child0[1] / child1[1]))
         if self.value == "&&":
-            return bool(self.children[0].evaluate() and self.children[1].evaluate())
+            return ("Bool", bool(child0[1] and child1[1]))
         if self.value == "||":
-            return bool(self.children[0].evaluate() or self.children[1].evaluate())
+            return ("Bool", bool(child0[1] or child1[1]))
         if self.value == "==":
-            return bool(self.children[0].evaluate() == self.children[1].evaluate())
+            return ("Bool", bool(child0[1] == child1[1]))
         if self.value == ">":
-            return bool(self.children[0].evaluate() > self.children[1].evaluate())
+            return ("Bool", bool(child0[1] > child1[1]))
         if self.value == "<":
-            return bool(self.children[0].evaluate() < self.children[1].evaluate())
+            return ("Bool", bool(child0[1] < child1[1]))
 
 class UnOp(Node):
-    def evaluate(self) -> int:
+    def evaluate(self):
+        child0 = self.children[0].evaluate()
+
+        if (child0[0] == "String"):
+            raise ValueError("UnOp cannot work with strings: " + child0[1])
+
         if self.value == "+":
-            return self.children[0].evaluate()
+            return child0
         if self.value == "-":
-            return -self.children[0].evaluate()
+            return ("Int", -child0[1])
         if self.value == "!":
-            return bool(not self.children[0].evaluate())
+            return ("Bool", bool(not child0[1]))
 
 class Identifier(Node):
-    def evaluate(self) -> int:
+    def evaluate(self):
         return table.getter(self.value)
 
 class Assignment(Node):
@@ -55,20 +78,20 @@ class Statment(Node):
 
 class Print(Node):
     def evaluate(self):
-        print(self.children[0].evaluate())
+        print(self.children[0].evaluate()[1])
 
 class Readline(Node):
     def evaluate(self):
-        return int(input())
+        return ("Int", int(input()))
 
 class While(Node):
     def evaluate(self):
-        while self.children[0].evaluate():
+        while self.children[0].evaluate()[1]:
             self.children[1].evaluate()
 
 class If(Node):
     def evaluate(self):
-        if self.children[0].evaluate():
+        if self.children[0].evaluate()[1]:
             return self.children[1].evaluate()
         else:
             if len(self.children) > 2:
@@ -79,8 +102,16 @@ class Else(Node):
         return self.children[0].evaluate()
 
 class IntVal(Node):
-    def evaluate(self) -> int:
-        return self.value
+    def evaluate(self):
+        return ("Int", self.value)
+
+class BoolVal(Node):
+    def evaluate(self):
+        return ("Bool", self.value)
+
+class StrVal(Node):
+    def evaluate(self):
+        return ("String", self.value)
 
 class NoOp(Node):
     def evaluate(self) -> int:

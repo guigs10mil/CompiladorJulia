@@ -7,8 +7,8 @@ class Tokenizer:
         self.actual = None
         self.operators = ["+", "-", "*", "/", "(", ")", ">", "<", "!"]
         self.operatorTypes = ["PLUS", "MINUS", "MULTI", "DIV", "POPEN", "PCLOSE", "GREATER", "LESSTHAN", "NOT"]
-        self.names = ["println", "while", "if", "elseif", "else", "readline", "end"]
-        self.namesTypes = ["PRINT", "WHILE", "IF", "ELSEIF", "ELSE", "READLINE", "END"]
+        self.names = ["println", "while", "if", "elseif", "else", "readline", "end", "true", "false", "local", "Int", "Bool", "String"]
+        self.namesTypes = ["PRINT", "WHILE", "IF", "ELSEIF", "ELSE", "READLINE", "END", "BOOL", "BOOL", "LOCAL", "TYPEINT", "TYPEBOOL", "TYPESTRING"]
     
     def selectNext(self):
         # lê o próximo token e atualiza o atributo atual
@@ -57,8 +57,29 @@ class Tokenizer:
                 raise ValueError("Invalid AND token")
             return
 
+        elif (tk == ":"):
+            if (self.origin[self.position + 1] == ":"):
+                self.actual = Token("TYPEDEF", "::")
+                self.position += 1
+            else:
+                raise ValueError("Invalid TYPEDEF token")
+            return
+
         elif (tk == "\n"):
             self.actual = Token("LBREAK", tk)
+            return
+
+        elif (tk == "\""):
+            tk = ""
+            while (len(self.origin) > self.position + 1 and self.origin[self.position + 1] != "\""):
+                tk += self.origin[self.position + 1]
+                self.position += 1
+
+            if (self.origin[self.position + 1] == "\""):
+                self.position += 1
+                self.actual = Token("STRING", tk)
+            else:
+                raise ValueError("Invalid STRING token: closing quotes not found.")
             return
 
         elif (tk.isnumeric()):
