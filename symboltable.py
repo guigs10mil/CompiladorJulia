@@ -9,4 +9,7 @@ class SymbolTable:
             raise ValueError("Getter did not find the given variable: " + key)
 
     def setter(self, key, value):
+        if key in self.table:
+            if value[0] != self.table[key][0]:
+                raise ValueError("Variable type does not match the Symbol Table: " + value[0] + " != " + self.table[key][0])
         self.table[key] = value

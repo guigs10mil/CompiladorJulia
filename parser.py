@@ -145,6 +145,36 @@ class Parser:
             else:
                 raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
 
+        elif (Parser.tokens.actual.type == "LOCAL"):
+            Parser.tokens.selectNext()
+            if (Parser.tokens.actual.type == "IDENT"):
+                identifier = Parser.tokens.actual
+                Parser.tokens.selectNext()
+                if (Parser.tokens.actual.type == "TYPEDEF"):
+                    Parser.tokens.selectNext()
+                    if (Parser.tokens.actual.type == "TYPEINT"):
+                        res = Assignment("=", [identifier, IntVal(0)])
+                    elif (Parser.tokens.actual.type == "TYPEBOOL"):
+                        res = Assignment("=", [identifier, BoolVal(False)])
+                    elif (Parser.tokens.actual.type == "TYPESTRING"):
+                        res = Assignment("=", [identifier, StrVal("")])
+                    else:
+                        raise ValueError("No value type found. Found " + Parser.tokens.actual.type + " instead.")
+
+                    Parser.tokens.selectNext()
+
+                else:
+                    raise ValueError("No TYPEDEF (::) found. Found " + Parser.tokens.actual.type + " instead.")
+            else:
+                raise ValueError("No identifier found. Found " + Parser.tokens.actual.type + " instead.")
+
+            if (Parser.tokens.actual.type == "LBREAK"):
+                Parser.tokens.selectNext()
+                return res
+            else:
+                raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
+                        
+
         elif (Parser.tokens.actual.type == "LBREAK"):
             Parser.tokens.selectNext()
             res = NoOp("NoOp")
@@ -225,6 +255,14 @@ class Parser:
 
         if (Parser.tokens.actual.type == "INT"):
             res = IntVal(int(Parser.tokens.actual.value))
+            Parser.tokens.selectNext()
+
+        elif (Parser.tokens.actual.type == "BOOL"):
+            res = BoolVal(bool(Parser.tokens.actual.value))
+            Parser.tokens.selectNext()
+
+        elif (Parser.tokens.actual.type == "STRING"):
+            res = StrVal(Parser.tokens.actual.value)
             Parser.tokens.selectNext()
 
         elif (Parser.tokens.actual.type == "NOT"):
