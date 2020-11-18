@@ -304,4 +304,6 @@ class Parser:
         if (Parser.tokens.actual.type != "EOF"):
             raise ValueError("Finished parsing but EOF wasn't reached. Found " + Parser.tokens.actual.type + " instead.")
 
-        return res.evaluate()
+        res.evaluate()
+
+        asm.close()
