@@ -1,3 +1,6 @@
+local a_1::Int
+local a_2::Int
+
 a_1 = 6
 a_2 = -3
 

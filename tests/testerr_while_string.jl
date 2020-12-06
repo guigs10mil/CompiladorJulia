@@ -1,5 +1,7 @@
-a = "alo"
+local str::String
 
-while a
-println("tchau")
+str = "alo"
+
+while str
+    println("tchau")
 end

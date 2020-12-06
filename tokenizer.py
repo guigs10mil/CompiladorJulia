@@ -7,8 +7,8 @@ class Tokenizer:
         self.actual = None
         self.operators = ["+", "-", "*", "/", "(", ")", ">", "<", "!"]
         self.operatorTypes = ["PLUS", "MINUS", "MULTI", "DIV", "POPEN", "PCLOSE", "GREATER", "LESSTHAN", "NOT"]
-        self.names = ["println", "while", "if", "elseif", "else", "readline", "end", "true", "false", "local", "Int", "Bool", "String"]
-        self.namesTypes = ["PRINT", "WHILE", "IF", "ELSEIF", "ELSE", "READLINE", "END", "BOOL", "BOOL", "LOCAL", "TYPEINT", "TYPEBOOL", "TYPESTRING"]
+        self.names = ["println", "while", "if", "elseif", "else", "readline", "end", "true", "false", "local", "Int", "Bool", "String", "function", "return"]
+        self.namesTypes = ["PRINT", "WHILE", "IF", "ELSEIF", "ELSE", "READLINE", "END", "BOOL", "BOOL", "LOCAL", "TYPEINT", "TYPEBOOL", "TYPESTRING", "FUNCTION", "RETURN"]
     
     def selectNext(self):
         # lê o próximo token e atualiza o atributo atual
@@ -63,6 +63,10 @@ class Tokenizer:
                 self.position += 1
             else:
                 raise ValueError("Invalid TYPEDEF token")
+            return
+        
+        elif (tk == ","):
+            self.actual = Token("COMMA", tk)
             return
 
         elif (tk == "\n"):

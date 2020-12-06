@@ -1,3 +1,6 @@
+local numero::Int
+local outro_numero::Int
+
 numero = 8 * 9 / 2       #= Conta basica =#
 outro_numero = (9 + 2) * 3
 

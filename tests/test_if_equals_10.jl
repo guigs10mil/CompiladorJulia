@@ -1,3 +1,5 @@
+local a::Int
+
 a = 5
 
 if a == 5

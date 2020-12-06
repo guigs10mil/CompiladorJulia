@@ -1,3 +1,5 @@
+local a::Int
+
 a = 1
 
 while a < 10

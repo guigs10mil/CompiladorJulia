@@ -1,3 +1,5 @@
+local a::Int
+
 a = 1
 
 if a < 10 a = a + 1

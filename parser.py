@@ -9,14 +9,118 @@ class Parser:
     def parseBlock():
         res = Statment("Block", [])
 
-        if (Parser.tokens.position == -1):
-            Parser.tokens.selectNext()
-
         while (Parser.tokens.actual.type != "EOF"
                 and Parser.tokens.actual.type != "ELSEIF"
                 and Parser.tokens.actual.type != "ELSE"
                 and Parser.tokens.actual.type != "END"):
             res.children.append(Parser.parseCommand())
+
+        return res
+
+    @staticmethod
+    def parseProgram():
+        res = Statment("Program", [])
+
+        if (Parser.tokens.position == -1):
+            Parser.tokens.selectNext()
+
+        while (Parser.tokens.actual.type != "EOF"):
+            if (Parser.tokens.actual.type == "FUNCTION"):
+                Parser.tokens.selectNext()
+                if (Parser.tokens.actual.type == "IDENT"):
+                    identifier = Parser.tokens.actual
+                    func = FuncDec(identifier, None, [])
+                    Parser.tokens.selectNext()
+                    if (Parser.tokens.actual.type == "POPEN"):
+                        Parser.tokens.selectNext()
+
+                        ## ARGUMENTOS
+                        if (Parser.tokens.actual.type == "IDENT"):
+                            identifier = Parser.tokens.actual
+                            Parser.tokens.selectNext()
+                            if (Parser.tokens.actual.type == "TYPEDEF"):
+                                Parser.tokens.selectNext()
+                            else:
+                                raise ValueError("No TYPEDEF (::) found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+
+                            if (Parser.tokens.actual.type == "TYPEINT"):
+                                func.children.append((identifier, IntVal(None)))
+                            elif (Parser.tokens.actual.type == "TYPEBOOL"):
+                                func.children.append((identifier, BoolVal(None)))
+                            elif (Parser.tokens.actual.type == "TYPESTRING"):
+                                func.children.append((identifier, StrVal(None)))
+                            else:
+                                raise ValueError("No value type found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+                            Parser.tokens.selectNext()
+
+                            while (Parser.tokens.actual.type == "COMMA"):
+                                Parser.tokens.selectNext()
+                                
+                                if (Parser.tokens.actual.type == "IDENT"):
+                                    identifier = Parser.tokens.actual
+                                    Parser.tokens.selectNext()
+                                    if (Parser.tokens.actual.type == "TYPEDEF"):
+                                        Parser.tokens.selectNext()
+                                    else:
+                                        raise ValueError("No TYPEDEF (::) found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+
+                                    if (Parser.tokens.actual.type == "TYPEINT"):
+                                        func.children.append((identifier, IntVal(None)))
+                                    elif (Parser.tokens.actual.type == "TYPEBOOL"):
+                                        func.children.append((identifier, BoolVal(None)))
+                                    elif (Parser.tokens.actual.type == "TYPESTRING"):
+                                        func.children.append((identifier, StrVal(None)))
+                                    else:
+                                        raise ValueError("No value type found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+                                    Parser.tokens.selectNext()
+
+
+                        if (Parser.tokens.actual.type == "PCLOSE"):
+                            Parser.tokens.selectNext()
+                            if (Parser.tokens.actual.type == "TYPEDEF"):
+                                Parser.tokens.selectNext()
+                            else:
+                                raise ValueError("No TYPEDEF (::) found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+
+                            if (Parser.tokens.actual.type == "TYPEINT"):
+                                func.returnType = "Int"
+                            elif (Parser.tokens.actual.type == "TYPEBOOL"):
+                                func.returnType = "Bool"
+                            elif (Parser.tokens.actual.type == "TYPESTRING"):
+                                func.returnType = "String"
+                            else:
+                                raise ValueError("No value type found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+
+                            Parser.tokens.selectNext()
+
+                            if (Parser.tokens.actual.type == "LBREAK"):
+                                Parser.tokens.selectNext()
+                            else:
+                                raise ValueError("No line break found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+
+                            func.children.append(Parser.parseBlock())
+
+                            if (Parser.tokens.actual.type == "END"):
+                                Parser.tokens.selectNext()
+                            else:
+                                raise ValueError("No end of while found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+                                
+                            if (Parser.tokens.actual.type == "LBREAK"):
+                                Parser.tokens.selectNext()
+                                res.children.append(func)
+                            else:
+                                raise ValueError("No line break found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+                            
+
+                        else:
+                            raise ValueError("Closing parenteses not found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+                    
+                    else:
+                        raise ValueError("Invalid token in function declaration: " + Parser.tokens.actual.type)
+                else:
+                    raise ValueError("No identifier found in function declaration. Found " + Parser.tokens.actual.type + " instead.")
+            else:
+                res.children.append(Parser.parseCommand())
 
         return res
 
@@ -45,6 +149,22 @@ class Parser:
                 
                 else:
                     res = Assignment("=", [identifier, Parser.parseRelExpression()])
+
+            elif (Parser.tokens.actual.type == "POPEN"):
+                res = FuncCall(identifier, [])
+                Parser.tokens.selectNext()
+
+                if (Parser.tokens.actual.type != "PCLOSE"):
+                    res.children.append(Parser.parseRelExpression())
+
+                    while (Parser.tokens.actual.type == "COMMA"):
+                        Parser.tokens.selectNext()
+                        res.children.append(Parser.parseRelExpression())
+
+                if (Parser.tokens.actual.type == "PCLOSE"):
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("Closing parenteses not found. Found " + Parser.tokens.actual.type + " instead.")
             
             else:
                 raise ValueError("Invalid token after identifier: " + Parser.tokens.actual.type)
@@ -54,7 +174,6 @@ class Parser:
                 return res
             else:
                 raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
-            
 
         elif (Parser.tokens.actual.type == "PRINT"):
             Parser.tokens.selectNext()
@@ -153,11 +272,11 @@ class Parser:
                 if (Parser.tokens.actual.type == "TYPEDEF"):
                     Parser.tokens.selectNext()
                     if (Parser.tokens.actual.type == "TYPEINT"):
-                        res = Assignment("=", [identifier, IntVal(0)])
+                        res = Assignment("=", [identifier, IntVal(None)])
                     elif (Parser.tokens.actual.type == "TYPEBOOL"):
-                        res = Assignment("=", [identifier, BoolVal(False)])
+                        res = Assignment("=", [identifier, BoolVal(None)])
                     elif (Parser.tokens.actual.type == "TYPESTRING"):
-                        res = Assignment("=", [identifier, StrVal("")])
+                        res = Assignment("=", [identifier, StrVal(None)])
                     else:
                         raise ValueError("No value type found. Found " + Parser.tokens.actual.type + " instead.")
 
@@ -173,7 +292,16 @@ class Parser:
                 return res
             else:
                 raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
-                        
+
+        elif (Parser.tokens.actual.type == "RETURN"):
+            Parser.tokens.selectNext()
+            res = Return("return", [Parser.parseRelExpression()])
+
+            if (Parser.tokens.actual.type == "LBREAK"):
+                Parser.tokens.selectNext()
+                return res
+            else:
+                raise ValueError("No line break found. Found " + Parser.tokens.actual.type + " instead.")
 
         elif (Parser.tokens.actual.type == "LBREAK"):
             Parser.tokens.selectNext()
@@ -258,7 +386,7 @@ class Parser:
             Parser.tokens.selectNext()
 
         elif (Parser.tokens.actual.type == "BOOL"):
-            res = BoolVal(bool(Parser.tokens.actual.value))
+            res = BoolVal(True if Parser.tokens.actual.value == "true" else False)
             Parser.tokens.selectNext()
 
         elif (Parser.tokens.actual.type == "STRING"):
@@ -278,8 +406,27 @@ class Parser:
             res = UnOp("-", [Parser.parseFactor()])
 
         elif (Parser.tokens.actual.type == "IDENT"):
-            res = Identifier(Parser.tokens.actual.value)
+            identifier = Parser.tokens.actual.value
             Parser.tokens.selectNext()
+
+            if (Parser.tokens.actual.type == "POPEN"):
+                res = FuncCall(identifier, [])
+                Parser.tokens.selectNext()
+
+                if (Parser.tokens.actual.type != "PCLOSE"):
+                    res.children.append(Parser.parseRelExpression())
+
+                    while (Parser.tokens.actual.type == "COMMA"):
+                        Parser.tokens.selectNext()
+                        res.children.append(Parser.parseRelExpression())
+
+                if (Parser.tokens.actual.type == "PCLOSE"):
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("Closing parenteses not found in function call")
+            
+            else:
+                res = Identifier(identifier)
 
         elif (Parser.tokens.actual.type == "POPEN"):
             Parser.tokens.selectNext()
@@ -299,9 +446,11 @@ class Parser:
         # recebe o código fonte como argumento, inicializa um objeto Tokenizador e retorna o resultado do parseExpression(). Esse método será chamado pelo main().
 
         Parser.tokens = Tokenizer(prepro.PrePro.filter(code))
-        res = Parser.parseBlock()
+        res = Parser.parseProgram()
 
         if (Parser.tokens.actual.type != "EOF"):
             raise ValueError("Finished parsing but EOF wasn't reached. Found " + Parser.tokens.actual.type + " instead.")
 
-        return res.evaluate()
+        table = SymbolTable()
+
+        return res.evaluate(table)
