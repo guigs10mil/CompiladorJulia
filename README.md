@@ -3,9 +3,15 @@
 ![DiagramaSintatico](https://github.com/guigs10mil/CompiladorJulia/blob/master/DiagramaSintatico.png?raw=true)
 
 ### EBNF
+PROGRAM = { COMMAND | FUNCTION } ;
+
 BLOCK = { COMMAND } ;
 
-COMMAND = ( ASSIGNMENT | PRINT | WHILE | IF ), "\n" | "\n" ;
+COMMAND = ( ASSIGNMENT | PRINT | WHILE | IF | LOCAL | RETURN | FUNCALL ), "\n" | "\n" ;
+
+FUNCTION = "function", IDENTIFIER, "(", [ IDENTIFIER, "::", "TYPE", { ",", IDENTIFIER, "::", "TYPE" } ], ")", "::", TYPE, "\n", BLOCK, "end" ;
+
+LOCAL = "local", IDENTIFIER, "::", "TYPE" ;
 
 ASSIGNMENT = IDENTIFIER, "=", ( REL_EXPRESSION | "readline", "(", ")" ) ;
 
@@ -19,13 +25,23 @@ ELSEIF = "elseif", REL_EXPRESSION, "\n", BLOCK ;
 
 ELSE = "else", "\n", BLOCK ;
 
+RETURN = "return", REL_EXPRESSION ;
+
 REL_EXPRESSION = EXPRESSION, { ( "==" | ">" | "<" ), EXPRESION } ;
 
 EXPRESSION = TERM, { ( "+" | "-" | "||" ), TERM } ;
 
 TERM = FACTOR, { ( "*" | "/" | "&&" ), FACTOR } ;
 
-FACTOR = NUMBER | ( ( "+" | "-" | "!" ), FACTOR ) | ( "(", REL_EXPRESSION, ")" ) | IDENTIFIER ;
+FACTOR = NUMBER | BOOLEAN | STRING | ( ( "+" | "-" | "!" ), FACTOR ) | ( "(", REL_EXPRESSION, ")" ) | IDENTIFIER | FUNCALL ;
+
+FUNCALL = IDENTIFIER, "(", [ REL_EXPRESSION, { ",", REL_EXPRESSION } ] , ")" ;
+
+TYPE = "Int", "Bool", "String" ;
+
+BOOLEAN = "true" | "false" ;
+
+STRING = "'", {.*?}, "'" ;
 
 IDENTIFIER = CHARACTER, { CHARACTER | DIGIT | "_" } ;
 
